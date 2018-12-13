@@ -1,0 +1,84 @@
+WE WANT TO FIND HOUR OF THE DAY WHEN HIGHEST NUMBER OF TWEETW WERE GENERATED ON MARCH 6 2010 (CHALLENGE DAY STATED)
+	
+
+	a = load '/user/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);
+	
+
+	b = filter a by SUBSTRING(ts, 0, 10) == '2010-03-06';
+	
+
+	c  FOREACH b generate ts, GetHour(ToDate(ts)) as tweethour;
+	
+
+	d = group c by tweethour;
+	
+
+	e = foreach d generate group, COUNT(c) as cnt;
+	
+
+	f = ORDER e by cnt DESC;
+	
+
+	g = dump f;
+	
+
+	WE NOW WANT TO FIND TOP 10 HASTAG TOPICS 
+	
+
+	a = load '/user/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);
+	
+
+	b = foreach a generate FLATTEN(TOKENIZE(tweet)) as token;
+	
+
+	c = filter b by STARTSWITH(token, '#');
+	
+
+	d = foreach c generate REGEX_EXTRACT(LOWER(token), '(#[\\w]+)',1) as tweet2;
+	
+
+	e = group d by tweet2;
+	
+
+	f = foreach e generate group, COUNT(d) as cnt2;
+	
+
+	g = order f by cnt2 desc;
+	
+
+	h = limit g 10;
+	
+
+	dump h;
+	
+
+	NOW WE WANT TO FIND TOP 10 MENTIONS
+	
+
+	a = load '/user/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);
+	
+
+	b = filter a by tweet MATCHES ‘^(?!.*RT @USER_).*’;
+	
+
+	c = foreach b generate FLATTEN(TOKENIZE(LOWER(tweet))) as token2;
+	
+
+	d = filter c by token2 MATCHES ‘@user_\\w{8}.*’;
+	
+
+	e = group d by token2;
+	
+
+	f = foreach e generate group, COUNT(d) as cnt3;
+	
+
+	g = order f by cnt3 desc;
+	
+
+	h = limit g 10;
+	
+
+	dump h;
+	
+
